@@ -1,67 +1,81 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard ESPEP - Compras</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard ESPEP - CSV PAC 2024</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f9;
+    }
+    h1 {
+      text-align: center;
+      color: #003366;
+    }
+    form, #csv-input, #logout-btn {
+      max-width: 400px;
+      margin: 20px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    input[type="email"], input[type="password"], input[type="file"] {
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px;
+      background-color: #003366;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #0055a5;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #003366;
+      color: white;
+    }
+    #logout-btn, #csv-input {
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- LOGIN -->
-  <section id="login-section" class="center">
-    <h2>Login ESPEP</h2>
-    <form id="login-form">
-      <input type="email" name="email" placeholder="E-mail institucional" required />
-      <input type="password" name="password" placeholder="Senha" required />
-      <button type="submit">Entrar</button>
-    </form>
-    <p id="status-msg"></p>
-  </section>
+  <h1>Dashboard ESPEP - CSV PAC 2024</h1>
 
-  <!-- DASHBOARD -->
-  <section id="dashboard-section" style="display:none;">
-    <header>
-      <h1>Dashboard de Compras - ESPEP</h1>
-      <button id="logout-btn">Sair</button>
-    </header>
+  <!-- FORMULÁRIO DE LOGIN -->
+  <form id="login-form">
+    <input type="email" id="email" placeholder="E-mail" required>
+    <input type="password" id="password" placeholder="Senha" required>
+    <button type="submit">Login</button>
+  </form>
 
-    <div class="upload-area">
-      <label for="upload-input">Enviar arquivo CSV:</label>
-      <input type="file" id="upload-input" accept=".csv" />
-      <button id="export-btn">Exportar Excel</button>
-    </div>
+  <!-- LOGOUT -->
+  <button id="logout-btn">Logout</button>
 
-    <div class="cards">
-      <div class="card">
-        <h3>Total Geral</h3>
-        <p id="total-geral">R$ 0,00</p>
-      </div>
-      <div class="card atendido">
-        <h3>Atendidos</h3>
-        <p id="total-atendidos">0</p>
-      </div>
-      <div class="card nao-atendido">
-        <h3>Não Atendidos</h3>
-        <p id="total-nao">0</p>
-      </div>
-    </div>
+  <!-- UPLOAD CSV -->
+  <input type="file" id="csv-input" accept=".csv">
 
-    <table>
-      <thead>
-        <tr>
-          <th>EMPRESA</th>
-          <th>VALOR</th>
-          <th>OBJETO</th>
-          <th>ATENDIDO</th>
-        </tr>
-      </thead>
-      <tbody id="data-table-body"></tbody>
-    </table>
+  <!-- CONTAINER DA TABELA -->
+  <div id="table-container"></div>
 
-    <p id="status-msg"></p>
-  </section>
-
+  <!-- SCRIPT JS -->
   <script type="module" src="js/script.js"></script>
 </body>
 </html>
