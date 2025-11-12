@@ -1,5 +1,6 @@
 // ======== IMPORTAÇÕES FIREBASE ========
-import { app, auth, db, storage } from "../firebase-config.js";
+import { auth, db } from './firebase-config.js';
+import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
