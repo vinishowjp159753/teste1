@@ -1,0 +1,102 @@
+:root{
+  --espep-blue: #003366;
+  --espep-blue-2: #00509e;
+  --accent: #f1c40f;
+  --muted: #6c757d;
+  --bg: #f8f9fa;
+  --card-bg: #fff;
+  --text: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root{
+    --bg: #0b1220;
+    --card-bg: #0f1724;
+    --text: #e6eef8;
+    --muted: #9aa6b2;
+  }
+}
+
+html,body{
+  height:100%;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* Navbar */
+.navbar-espep{
+  background: linear-gradient(90deg, var(--espep-blue), var(--espep-blue-2));
+  color: white;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.navbar-espep .navbar-brand { color: #fff; font-weight:700; }
+
+/* Sidebar */
+.sidebar {
+  background: var(--espep-blue);
+  color: #fff;
+  min-height: calc(100vh - 56px);
+  padding-top: 20px;
+}
+.sidebar a {
+  color: rgba(255,255,255,0.92);
+  text-decoration:none;
+  display:block;
+  padding:10px 16px;
+  border-radius:8px;
+  margin:4px 8px;
+  transition: all .15s ease;
+  font-weight:600;
+}
+.sidebar a:hover{ background: rgba(255,255,255,0.06); transform: translateX(4px); }
+.sidebar a.active{ background: rgba(0,0,0,0.15); }
+
+.card {
+  border: none;
+  border-radius: 12px;
+  background: var(--card-bg);
+  box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+}
+.card:hover { transform: translateY(-4px); }
+
+.card-header{
+  background: linear-gradient(90deg,var(--espep-blue),var(--espep-blue-2));
+  color:white;
+  border-radius: 12px 12px 0 0 !important;
+  font-weight:700;
+}
+
+.metric-card { text-align:center; padding:18px; }
+.metric-value { font-size:1.6rem; font-weight:800; color:var(--espep-blue); }
+.metric-label { color:var(--muted); font-size:0.85rem; }
+
+.chart-container { position:relative; height:300px; width:100%; }
+
+.filter-section{
+  background:var(--card-bg);
+  padding:14px;
+  border-radius:12px;
+  margin-bottom:18px;
+  box-shadow: 0 3px 10px rgba(16,24,40,0.04);
+}
+
+.data-table { font-size:0.92rem; }
+
+.highlight-pac { background: rgba(0,80,150,0.06); }
+
+@media (max-width: 991px) {
+  .sidebar { min-height: auto; padding-bottom:12px; }
+  .chart-container { height:260px; }
+  .metric-value { font-size:1.2rem; }
+}
+
+a:focus, button:focus, input:focus, select:focus {
+  outline: 3px solid rgba(0,48,102,0.18);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+#csv-file-input { display:none; }
+.small-muted { font-size:0.85rem; color:var(--muted); }
