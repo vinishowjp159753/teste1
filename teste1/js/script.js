@@ -1,172 +1,96 @@
-// ======== IMPORTAÇÕES FIREBASE ========
-import { auth, db } from './firebase-config.js';
-import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import {
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+// script.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-import {
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  orderBy,
-  Timestamp
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+// --- CONFIGURAÇÃO FIREBASE ---
+const firebaseConfig = {
+  apiKey: "AIzaSyDHhaUXD8nN2g7RkwVEKRA-sLbziTKZEjE",
+  authDomain: "nadespep-e6542.firebaseapp.com",
+  projectId: "nadespep-e6542",
+  storageBucket: "nadespep-e6542.firebasestorage.app",
+  messagingSenderId: "319048705769",
+  appId: "1:319048705769:web:4fcd73d77e9778ccb1b278"
+};
 
-// ======== ELEMENTOS DO DOM ========
-const loginSection = document.getElementById("login-section");
-const dashboardSection = document.getElementById("dashboard-section");
-const loginForm = document.getElementById("login-form");
-const logoutBtn = document.getElementById("logout-btn");
-const uploadInput = document.getElementById("upload-input");
-const tableBody = document.getElementById("data-table-body");
-const statusMsg = document.getElementById("status-msg");
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-// ======== LOGIN ========
-loginForm?.addEventListener("submit", async (e) => {
+// --- ELEMENTOS HTML ---
+const loginForm = document.getElementById('login-form');
+const logoutBtn = document.getElementById('logout-btn');
+const csvInput = document.getElementById('csv-input');
+const tableContainer = document.getElementById('table-container');
+
+// --- LOGIN ---
+loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const email = e.target.email.value;
-  const password = e.target.password.value;
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
-    statusMsg.textContent = "Login realizado com sucesso!";
-    statusMsg.style.color = "green";
+    alert('Login efetuado com sucesso!');
+    loginForm.style.display = 'none';
+    logoutBtn.style.display = 'block';
+    csvInput.style.display = 'block';
   } catch (err) {
-    console.error(err);
-    statusMsg.textContent = "Falha no login. Verifique o e-mail e a senha.";
-    statusMsg.style.color = "red";
+    alert('Erro no login: ' + err.message);
   }
 });
 
-// ======== VERIFICA SE O USUÁRIO ESTÁ LOGADO ========
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    loginSection.style.display = "none";
-    dashboardSection.style.display = "block";
-    carregarDadosFirestore();
-  } else {
-    loginSection.style.display = "block";
-    dashboardSection.style.display = "none";
-  }
-});
-
-// ======== LOGOUT ========
-logoutBtn?.addEventListener("click", async () => {
+// --- LOGOUT ---
+logoutBtn.addEventListener('click', async () => {
   await signOut(auth);
-  statusMsg.textContent = "Você saiu do sistema.";
-  statusMsg.style.color = "gray";
+  alert('Logout efetuado!');
+  loginForm.style.display = 'block';
+  logoutBtn.style.display = 'none';
+  csvInput.style.display = 'none';
+  tableContainer.innerHTML = '';
 });
 
-// ======== LEITURA DO CSV ========
-uploadInput?.addEventListener("change", (e) => {
+// --- PROCESSAR CSV ---
+csvInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = async (event) => {
-    const csv = event.target.result;
-    const linhas = csv.trim().split("\n").map(l => l.split(","));
-    const header = linhas.shift();
-
-    const empresasIndex = header.findIndex(h => h.toUpperCase().includes("EMPRESA"));
-    const valorIndex = header.findIndex(h => h.toUpperCase().includes("VALOR"));
-    const objetoIndex = header.findIndex(h => h.toUpperCase().includes("OBJETO"));
-    const pacIndex = header.findIndex(h => h.toUpperCase().includes("PAC"));
-
-    const registros = linhas.map(linha => {
-      const empresa = linha[empresasIndex]?.trim() || "";
-      const valor = parseFloat(linha[valorIndex]?.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
-      const objeto = linha[objetoIndex]?.trim() || "";
-      const pac = linha[pacIndex]?.trim() || "";
-      const atendido = pac.toUpperCase().includes("NÃO CONSTA") ? "NÃO ATENDIDO" : "ATENDIDO";
-      return { empresa, valor, objeto, pac, atendido };
-    });
-
-    await salvarNoFirestore(registros);
-    await carregarDadosFirestore();
+  reader.onload = (event) => {
+    const text = event.target.result;
+    const rows = text.split('\n').map(r => r.split(','));
+    generateTable(rows);
   };
-
   reader.readAsText(file);
 });
 
-// ======== SALVAR NO FIRESTORE ========
-async function salvarNoFirestore(dados) {
-  try {
-    const ref = collection(db, "compras");
-    await addDoc(ref, {
-      dataUpload: Timestamp.now(),
-      registros: dados
+// --- GERAR TABELA ---
+function generateTable(data) {
+  if (!data.length) return;
+
+  const headers = data[0];
+  const rows = data.slice(1);
+
+  let html = '<table border="1" style="width:100%;border-collapse:collapse;">';
+  html += '<thead><tr>';
+  headers.forEach(h => html += `<th>${h.trim()}</th>`);
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(r => {
+    if (r.length !== headers.length) return; // ignora linhas incompletas
+    html += '<tr>';
+    r.forEach((cell, i) => {
+      // regra PAC 2024
+      if (headers[i].trim().toUpperCase() === 'ATENDIDO NO PAC 2024') {
+        const val = cell.trim().toUpperCase();
+        html += `<td>${val === 'NÃO CONSTA NO PAC 2024' ? 'NÃO ATENDIDO' : 'ATENDIDO'}</td>`;
+      } else {
+        html += `<td>${cell.trim()}</td>`;
+      }
     });
-    statusMsg.textContent = "Upload salvo com sucesso!";
-    statusMsg.style.color = "green";
-  } catch (err) {
-    console.error(err);
-    statusMsg.textContent = "Erro ao salvar no banco de dados.";
-    statusMsg.style.color = "red";
-  }
-}
-
-// ======== CARREGAR DADOS DO FIRESTORE ========
-async function carregarDadosFirestore() {
-  tableBody.innerHTML = "";
-
-  const ref = collection(db, "compras");
-  const q = query(ref, orderBy("dataUpload", "desc"));
-  const snapshot = await getDocs(q);
-
-  if (snapshot.empty) {
-    tableBody.innerHTML = "<tr><td colspan='4'>Nenhum dado disponível.</td></tr>";
-    return;
-  }
-
-  // pega o upload mais recente
-  const ultimo = snapshot.docs[0].data().registros;
-
-  let totalAtendidos = 0;
-  let totalNaoAtendidos = 0;
-  let somaValores = 0;
-
-  ultimo.forEach((item) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.empresa}</td>
-      <td>R$ ${item.valor.toFixed(2)}</td>
-      <td>${item.objeto}</td>
-      <td>${item.atendido}</td>
-    `;
-    tableBody.appendChild(tr);
-
-    somaValores += item.valor;
-    if (item.atendido === "ATENDIDO") totalAtendidos++;
-    else totalNaoAtendidos++;
+    html += '</tr>';
   });
 
-  // Atualiza totais no dashboard (caso tenha elementos para isso)
-  const totalGeral = document.getElementById("total-geral");
-  const totalAt = document.getElementById("total-atendidos");
-  const totalNao = document.getElementById("total-nao");
-
-  if (totalGeral) totalGeral.textContent = `R$ ${somaValores.toFixed(2)}`;
-    if (totalAt) totalAt.textContent = totalAtendidos;
-  if (totalNao) totalNao.textContent = totalNaoAtendidos;
+  html += '</tbody></table>';
+  tableContainer.innerHTML = html;
 }
-
-// ======== EXPORTAR PARA EXCEL ========
-document.getElementById("export-btn")?.addEventListener("click", () => {
-  const rows = [["EMPRESA", "VALOR", "OBJETO", "ATENDIDO"]];
-  document.querySelectorAll("#data-table-body tr").forEach((tr) => {
-    const cells = Array.from(tr.children).map((td) => td.innerText);
-    rows.push(cells);
-  });
-
-  const csvContent = rows.map(e => e.join(",")).join("\n");
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "dados_compras.csv";
-  link.click();
-});
