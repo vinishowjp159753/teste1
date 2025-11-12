@@ -202,18 +202,30 @@ function handleCSVUpload(event){
 
 function parseCSV(text){
   const lines = text.trim().split("\n");
+  const headers = lines[0].toLowerCase().split(",").map(h => h.trim());
   const newData = [];
-  for(let i=1; i<lines.length; i++){
+
+  const idxEmpresa = headers.findIndex(h => h.includes("empresa"));
+  const idxValor = headers.findIndex(h => h.includes("valor"));
+  const idxObjeto = headers.findIndex(h => h.includes("objeto"));
+  const idxPac = headers.findIndex(h => h.includes("pac"));
+
+  for(let i = 1; i < lines.length; i++){
     const cols = lines[i].split(",");
-    if(cols.length >= 4){
-      newData.push({
-        empresa: cols[0],
-        valor: parseFloat(cols[1].replace(/[^\d]/g,"")) || 0,
-        objeto: cols[2],
-        pac: cols[3].toUpperCase().includes("SIM") ? "SIM" : "NÃO"
-      });
-    }
+    if(cols.length < 4) continue;
+
+    const empresa = cols[idxEmpresa]?.trim() || "";
+    const valorStr = cols[idxValor]?.trim().replace(/[^\d,]/g,"");
+    const valor = parseFloat(valorStr.replace(",", ".")) || 0;
+    const objeto = cols[idxObjeto]?.trim() || "";
+    const pacText = (cols[idxPac] || "").toUpperCase();
+
+    // AQUI ENTRA SUA REGRA
+    const pac = pacText.includes("NÃO CONSTA") ? "NÃO" : "SIM";
+
+    newData.push({ empresa, valor, objeto, pac });
   }
+
   sampleData = newData;
   updateDashboard(sampleData);
 }
